@@ -1,0 +1,207 @@
+diff all
+
+# version
+# Betaflight / STM32H743 (SH74) 4.5.0 Oct  9 2023 / 14:05:27 (787f22b61) MSP API: 1.46
+# config rev: 5d34e80
+
+# start the command batch
+batch start
+
+# reset configuration to default settings
+defaults nosave
+
+board_name MATEKH743
+manufacturer_id MTKS
+mcu_id 0019002a3130511633323335
+signature 
+
+# name: apex5
+
+# feature
+feature GPS
+feature TELEMETRY
+feature OSD
+
+# serial
+serial 1 2 115200 57600 0 115200
+serial 3 131073 115200 57600 0 115200
+serial 6 128 115200 57600 0 2000000
+
+# aux
+aux 0 0 0 1900 2100 0 0
+aux 1 1 2 1900 2100 0 0
+aux 2 2 2 900 1100 0 0
+aux 3 27 4 1900 2100 1 0
+aux 4 27 0 1900 2100 1 0
+aux 5 27 1 1900 2100 1 0
+aux 6 0 3 1900 2100 1 0
+aux 7 0 0 1900 2100 1 0
+aux 8 13 5 1900 2100 1 0
+aux 9 13 0 900 1100 1 0
+aux 10 26 5 1900 2100 1 0
+aux 11 26 0 1900 2100 1 0
+aux 12 35 3 900 1100 1 0
+aux 13 35 0 1900 2100 1 0
+aux 14 36 1 1900 2100 0 0
+
+# master
+set gyro_lpf1_static_hz = 0
+set gyro_lpf2_static_hz = 600
+set dyn_notch_count = 1
+set dyn_notch_q = 500
+set gyro_lpf1_dyn_min_hz = 0
+set gyro_lpf1_dyn_max_hz = 0
+set acc_calibration = -45,24,133,1
+set align_mag = CUSTOM
+set mag_align_roll = -1800
+set mag_align_pitch = 290
+set rssi_channel = 12
+set rc_smoothing_auto_factor = 45
+set rc_smoothing_auto_factor_throttle = 45
+set blackbox_sample_rate = 1/2
+set blackbox_device = SERIAL
+set blackbox_mode = ALWAYS
+set blackbox_high_resolution = ON
+set dshot_bidir = ON
+set motor_pwm_protocol = DSHOT300
+set failsafe_switch_mode = STAGE2
+set failsafe_procedure = GPS-RESCUE
+set small_angle = 180
+set mag_declination = 30
+set gps_ublox_use_galileo = ON
+set gps_rescue_allow_arming_without_fix = ON
+set yaw_deadband = 5
+set pid_process_denom = 2
+set simplified_gyro_filter = OFF
+set osd_warn_bitmask = 16253
+set osd_rssi_pos = 2674
+set osd_flymode_pos = 2653
+set osd_gps_speed_pos = 2717
+set osd_gps_lon_pos = 3201
+set osd_gps_lat_pos = 2194
+set osd_gps_sats_pos = 3656
+set osd_home_dir_pos = 2269
+set osd_home_dist_pos = 3688
+set osd_altitude_pos = 2706
+set osd_pidrate_profile_pos = 3720
+set osd_warnings_pos = 2490
+set osd_avg_cell_voltage_pos = 2642
+set osd_disarmed_pos = 2684
+set osd_displayport_device = MSP
+set osd_canvas_width = 60
+set osd_canvas_height = 22
+set debug_mode = MAG_CALIB
+set vcd_video_system = HD
+set displayport_msp_fonts = 0,0,0,0
+set rpm_filter_fade_range_hz = 30
+set craft_name = apex5
+set pilot_name = pichim
+
+profile 0
+
+# profile 0
+set dterm_lpf1_dyn_min_hz = 0
+set dterm_lpf1_dyn_max_hz = 0
+set dterm_lpf1_static_hz = 0
+set dterm_lpf2_type = PT3
+set dterm_lpf2_static_hz = 160
+set dterm_notch_hz = 235
+set dterm_notch_cutoff = 213
+set vbat_sag_compensation = 80
+set anti_gravity_gain = 120
+set iterm_relax_cutoff = 10
+set pidsum_limit = 800
+set pidsum_limit_yaw = 600
+set yaw_lowpass_hz = 200
+set p_pitch = 62
+set i_pitch = 92
+set f_pitch = 0
+set p_roll = 50
+set i_roll = 75
+set d_roll = 38
+set f_roll = 0
+set p_yaw = 43
+set i_yaw = 85
+set d_yaw = 3
+set f_yaw = 0
+set d_min_roll = 38
+set d_min_pitch = 46
+set d_min_yaw = 3
+set thrust_linear = 20
+set dyn_idle_min_rpm = 25
+set simplified_pids_mode = OFF
+set simplified_dterm_filter = OFF
+set tpa_rate = 60
+set tpa_breakpoint = 1450
+
+profile 1
+
+# profile 1
+set dterm_lpf1_dyn_min_hz = 0
+set dterm_lpf1_dyn_max_hz = 0
+set dterm_lpf1_static_hz = 0
+set dterm_lpf2_type = PT3
+set dterm_lpf2_static_hz = 160
+set dterm_notch_hz = 235
+set dterm_notch_cutoff = 213
+set anti_gravity_gain = 0
+set iterm_relax = OFF
+set iterm_relax_cutoff = 10
+set pidsum_limit = 800
+set pidsum_limit_yaw = 600
+set yaw_lowpass_hz = 200
+set p_pitch = 0
+set i_pitch = 0
+set d_pitch = 0
+set f_pitch = 0
+set p_roll = 0
+set i_roll = 0
+set d_roll = 0
+set f_roll = 0
+set p_yaw = 0
+set i_yaw = 0
+set f_yaw = 0
+set d_min_roll = 0
+set d_min_pitch = 0
+set dyn_idle_min_rpm = 25
+set simplified_pids_mode = OFF
+set simplified_dterm_filter = OFF
+set tpa_rate = 60
+set tpa_breakpoint = 1450
+
+profile 2
+
+profile 3
+
+# restore original profile selection
+profile 1
+
+rateprofile 0
+
+# rateprofile 0
+set thr_mid = 20
+set thr_expo = 30
+set roll_rc_rate = 16
+set pitch_rc_rate = 16
+set yaw_rc_rate = 17
+set roll_expo = 70
+set pitch_expo = 70
+set yaw_expo = 63
+set roll_srate = 70
+set pitch_srate = 70
+set yaw_srate = 60
+set throttle_limit_type = SCALE
+set throttle_limit_percent = 80
+
+rateprofile 1
+
+rateprofile 2
+
+rateprofile 3
+
+# restore original rateprofile selection
+rateprofile 0
+
+# save configuration
+save
+# 
