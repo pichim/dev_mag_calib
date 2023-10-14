@@ -78,7 +78,7 @@ for x = 1:N
     % gamma = k ./ alpha(4);
     % cBE.theta = cBE.theta + gamma * e;
     for i = 1:4
-        cBE.theta(i) = cBE.theta(i) + (k(i) / alpha(3)) * e;
+        cBE.theta(i) = cBE.theta(i) + (k(i) / alpha(4)) * e;
     end
 
     % bias update

@@ -1,12 +1,14 @@
-function [theta, theta_mat, lambda_vec] = est_mag_bias_and_scale_RLS_only_mag(mag, lambda_min, p0)
+function [theta, theta_mat, lambda_vec] = est_mag_bias_and_scale_RLS_only_mag(mag, lambda_min, p0, scale_mag)
+
+mag = mag / scale_mag;
 
 N = size(mag, 1);
 theta_mat = zeros(N, 6);
 lambda_vec = zeros(N, 1);
 
-theta = zeros(6, 1);
+theta = zeros(6, 1); %theta(1:3,:) = 1/9;
 U = eye(6);
-D = p0 * eye(6);
+D = [p0 * eye(3), zeros(3); zeros(3), p0*eye(3)];
 lambda = lambda_min;
 
 alpha = zeros(6, 1);

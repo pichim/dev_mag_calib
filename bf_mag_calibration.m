@@ -26,15 +26,16 @@ if ~do_i_use_matlab
     end
 end
 
+fs_mag = 200;        % assumed sampling frequency of mag unit
+lambda_min = 0.95;   % minimal adaptive forgetting factor, range: [0.90, 0.99]
+p0 = 1e2;            % value to initialize P(0) = diag([P0, P0, P0]), typically in range: (1, 1000)
 
-lambda = 0.99;       % adaptive forgetting factor, range: [0, 1]
-lambda_min = lambda; % minimal adaptive forgetting factor, range: [0, 1]
-p0 = 1e0;            % value to initialize P(0) = diag([P0, P0, P0]), typically in range: (0, 10)
-scale_mag = 5e2;     % scale for magnetometer data, method is sensitive, this was optimized for raw mag data
+% these parameters do not matter in current c implementation
+lambda = 1.00;       % adaptive forgetting factor, range: [0.9, 1.0]
+scale_mag = 1.0e0;   % unnescessary
                      % in the range (1000, 2000)
-
-fs_mag = 200; % assumed sampling frequency of mag unit
-
+lambda_min_bias_and_scale = 0.97;
+lambda_min_bias_scale_and_rotation = 0.98;
 
 % measurements
 
@@ -44,14 +45,29 @@ fs_mag = 200; % assumed sampling frequency of mag unit
 % T_eval = [4.0, 136.0];
 
 % online calibration using stick commands, blackboxmode
-% result from fc: mag_calibration = 1010,505,549
-file_name = '20231009_apex5_mag_on_tpu_00.bbl.csv';
-T_eval = [25.7226, inf];
-
-% online calibration using stick commands
+% - set blackbox_mode = ALWAYS
+% - result from fc: mag_calibration = 1010,505,549
+% file_name = '20231009_apex5_mag_on_tpu_00.bbl.csv';
+% T_eval = [25.7226, inf];
 % - result from fc: mag_calibration = 1011,503,559
 % file_name = '20231009_apex5_mag_on_tpu_01.bbl.csv';
-% T_eval = [20.7939, inf];
+% T_eval = [20.7976, inf];
+
+% online calibration using stick commands
+% - set blackbox_mode = ALWAYS
+% - result from fc: mag_calibration = 892,398,466
+% file_name = '20231014_apex5_mag_on_tpu_00.bbl.csv';
+% T_eval = [16.0919 + 0.0*(+ 0.2 - 1.0), inf];
+
+% - result from fc: mag_calibration = 945,417,503
+% file_name = '20231014_apex5_mag_on_tpu_01.bbl.csv';
+% T_eval = [26.4394, inf];
+% - result from fc: mag_calibration = 958,420,506
+% file_name = '20231014_apex5_mag_on_tpu_02.bbl.csv';
+% T_eval = [11.8071, inf];
+% - result from fc: mag_calibration = 957,417,502
+file_name = '20231014_apex5_mag_on_tpu_03.bbl.csv';
+T_eval = [15.6461, inf];
 
 
 % extract header information
@@ -127,6 +143,7 @@ plot(time, mag), grid on, xlim([0 time(end)]), ylabel('magADC')
 title('mag')
 ax(2) = subplot(223);
 plot(time, sqrt(sum(mag.^2, 2))), grid on, xlim([0 time(end)]), ylabel('|magADC|'), xlabel('Time (sec)')
+% plot(time, data(:, ind.debug(:,8))), grid on, ylabel('lambda'), xlabel('Time (sec)')
 ax(3) = subplot(222);
 plot(time, gyro), grid on, xlim([0 time(end)]), ylabel('gyroADC')
 title('gyro')
@@ -211,8 +228,7 @@ end
 
 % https://github.com/pronenewbits/Arduino_AHRS_System
 % - almost identical to magcal with option 'eye' (<1% difference)
-% mag_scaled = mag ./ 2000;
-% cond([mag_scaled, ones(N, 1)])
+% mag_scaled = mag ./ 2000; cond([mag_scaled, ones(N, 1)])
 b = [eye(3), zeros(3,1)] * ([mag, ones(N, 1)] \ (0.5 * sum(mag.^2, 2)));
 draw_line()
 fprintf(" alternative LS solution only bias\n")
@@ -220,8 +236,7 @@ draw_matrix(b)
 
 
 % http://www.juddzone.com/ALGORITHMS/least_squares_3D_ellipsoid.html
-% mag_scaled = mag ./ 2000;
-% cond([sum(mag_scaled.^2, 2), mag_scaled])
+% mag_scaled = mag ./ 2000; cond([sum(mag_scaled.^2, 2), mag_scaled])
 theta = [sum(mag.^2, 2), mag] \ ones(N,1);
 b = -0.5 * theta(2:4) ./ theta(1);
 draw_line()
@@ -235,6 +250,7 @@ calib.eye.b = b;
 % http://www.juddzone.com/ALGORITHMS/least_squares_3D_ellipsoid.html
 % - almost identical to magcal with option 'diag' (<1% difference)
 % scale_mag_test = 1e2; cond([(mag/scale_mag_test).^2, mag/scale_mag_test])
+% mag_scaled = mag ./ 2000; cond([mag_scaled.^2, mag_scaled])
 theta = [mag.^2, mag] \ ones(N,1);
 b = -0.5 * theta(4:6) ./ theta(1:3);
 a = sqrt(theta(1:3));
@@ -282,9 +298,9 @@ draw_matrix(b)
 if (do_show_RLS_results)
     [b, b_mat, lambda_vec] = ...
         est_mag_bias_RLS_only_mag(mag, lambda_min, p0, scale_mag); %#ok
-    % draw_line()
-    % fprintf(" Algorithm 1: adaptive RLS solution only bias\n")
-    % draw_matrix(b)
+    draw_line()
+    fprintf(" Algorithm 1: adaptive RLS solution only bias\n")
+    draw_matrix(b)
 
     est_rls.alg1_0.b_mat = b_mat;
     est_rls.alg1_0.lambda_vec = lambda_vec;
@@ -302,8 +318,8 @@ if (do_show_RLS_results)
 
 
     [theta, theta_mat, lambda_vec] = ...
-        est_mag_bias_and_scale_RLS_only_mag(mag, lambda_min, p0); %#ok
-    b = -0.5 * theta(4:6) ./ theta(1:3);
+        est_mag_bias_and_scale_RLS_only_mag(mag, lambda_min_bias_and_scale, p0, scale_mag); %#ok
+    b = (-0.5 * theta(4:6) ./ theta(1:3)) * scale_mag;
     a = sqrt(theta(1:3));
     A = diag(a);
     A = A ./ mean( diag(A) );
@@ -312,9 +328,32 @@ if (do_show_RLS_results)
     draw_matrix(A)
     draw_matrix(b)
 
+    b_mat = zeros(size(b_mat));
+    scale_mat = zeros(size(b_mat));
+    for i = 1:size(b_mat, 1)
+        b_mat(i,:) = (-0.5 * theta_mat(i,4:6) ./ theta_mat(i,1:3)) * scale_mag;
+        scale_mat(i,:) = sqrt(theta_mat(i,1:3));
+        scale_mat(i,:) = scale_mat(i,:) ./ mean(scale_mat(i,:));
+    end
+    est_rls.alg2_0.b_mat = b_mat;
+    est_rls.alg2_0.scale_mat = scale_mat;
+    est_rls.alg2_0.lambda_vec = lambda_vec;
+
+
+    [b, scale, b_mat, scale_mat, lambda_vec] = ...
+        est_mag_bias_and_scale_RLS_only_mag_c_implementation(mag, lambda_min_bias_and_scale, p0, scale_mag); %#ok
+    draw_line()
+    fprintf(" Algorithm 2: adaptive RLS solution bias and scaling c implementation\n")
+    draw_matrix(diag(scale))
+    draw_matrix(b)
+
+    est_rls.alg2_1.b_mat = b_mat;
+    est_rls.alg2_1.scale_mat = scale_mat;
+    est_rls.alg2_1.lambda_vec = lambda_vec;
+    
 
     [param, param_mat, lambda_vec] = ...
-        est_mag_full_RLS_only_mag(mag, lambda_min, p0); %#ok
+        est_mag_bias_scale_and_rotation_RLS_only_mag(mag, lambda_min_bias_scale_and_rotation, p0); %#ok
     [b, axes, R] = polyToParams3D( param.' );
     A = R * diag(1./axes) * R.';
     A = A ./ mean( eig(A) );
@@ -324,11 +363,11 @@ if (do_show_RLS_results)
     draw_matrix(b)
 
 
-    % [b, b_mat, lambda_vec] = ...
-    %     est_mag_bias_RLS(mag, dmag, gyro, lambda_min, p0);
-    % draw_line()
-    % fprintf(" adaptive RLS solution only bias using gyro and mag data\n")
-    % draw_matrix(b)
+    [b, b_mat, lambda_vec] = ...
+        est_mag_bias_RLS(mag, dmag, gyro, lambda_min, p0);
+    draw_line()
+    fprintf(" adaptive RLS solution only bias using gyro and mag data\n")
+    draw_matrix(b)
 
 
     % same as above
@@ -377,59 +416,79 @@ plot3(mag_calib(ind_show,1), mag_calib(ind_show,2), mag_calib(ind_show,3), '.', 
 axis equal
 legend('uncalibrated', 'calibrated', 'location', 'northeast')
 
+%%
 
-dx_bin = 10;
+dx_bin = 5;
 x_bins = floor(min(min(mag_calib_norm))/dx_bin)*dx_bin:dx_bin:ceil(max(max(mag_calib_norm))/dx_bin)*dx_bin;
 
-figure(6), clf
-ax(1) = subplot(311);
-bin_count = histc(mag_calib_norm(:,1), x_bins); %#ok
-bar(x_bins, bin_count, 'hist'), grid on
-set(findobj(gca, 'Type', 'patch'), 'FaceColor', [0 0 1])
-title('bias')
-ax(2) = subplot(312);
-bin_count = histc(mag_calib_norm(:,2), x_bins); %#ok
-bar(x_bins, bin_count, 'hist'), grid on
-set(findobj(gca, 'Type', 'patch'), 'FaceColor', [0 0.5 0])
-title('bias and scaling')
-ax(3) = subplot(313);
-bin_count = histc(mag_calib_norm(:,3), x_bins); %#ok
-bar(x_bins, bin_count, 'hist'), grid on
-set(findobj(gca, 'Type', 'patch'), 'FaceColor', [1 0 0])
-title('bias, scaling and rotation')
-linkaxes(ax, 'xy'), clear ax
+% figure(6), clf
+% ax(1) = subplot(311);
+% bin_count = histc(mag_calib_norm(:,1), x_bins); %#ok
+% bar(x_bins, bin_count, 'hist'), grid on
+% set(findobj(gca, 'Type', 'patch'), 'FaceColor', [0 0 1])
+% title('bias')
+% ax(2) = subplot(312);
+% bin_count = histc(mag_calib_norm(:,2), x_bins); %#ok
+% bar(x_bins, bin_count, 'hist'), grid on
+% set(findobj(gca, 'Type', 'patch'), 'FaceColor', [0 0.5 0])
+% title('bias and scaling')
+% ax(3) = subplot(313);
+% bin_count = histc(mag_calib_norm(:,3), x_bins); %#ok
+% bar(x_bins, bin_count, 'hist'), grid on
+% set(findobj(gca, 'Type', 'patch'), 'FaceColor', [1 0 0])
+% title('bias, scaling and rotation')
+% linkaxes(ax, 'xy'), clear ax
 
-if (do_i_use_matlab)
-    hist_normalization = 'count'; %#ok
-    figure(7)
-    histogram(mag_calib_norm(:,1), 'Normalization', hist_normalization, 'FaceAlpha', 0.5, 'FaceColor', [0 0 1]), grid on, hold on
-    histogram(mag_calib_norm(:,2), 'Normalization', hist_normalization, 'FaceAlpha', 0.5, 'FaceColor', [0 0.5 0])
-    histogram(mag_calib_norm(:,3), 'Normalization', hist_normalization, 'FaceAlpha', 0.5, 'FaceColor', [1 0 0]), hold off
-    legend('bias', 'bias and scaling', 'bias, scaling and rotation', 'location', 'northeast')
-end
+figure(6), clf
+bin_count = histc(mag_calib_norm, x_bins); %#ok
+h = bar(x_bins, bin_count(:,1), 'hist'); grid on, hold on
+set (h, 'FaceColor', [0 0 1], "FaceAlpha", 0.5);
+h = bar(x_bins, bin_count(:,2), 'hist');
+set (h, 'FaceColor', [0 0.5 0], "FaceAlpha", 0.5);
+h = bar(x_bins, bin_count(:,3), 'hist'); hold off
+set (h, 'FaceColor', [1 0 0], "FaceAlpha", 0.5);
+legend('bias', 'bias and scaling', 'bias, scaling and rotation', 'location', 'northeast')
 
 
 %% not important for other users
 
 if (do_compare_RLS_results)
 
-    y_lim_upper = ceil(max(calib.eye.b) / 200) * 200; %#ok
-    y_lim_lower = floor(min(calib.eye.b) / 200) * 200;
+    y_lim_upper = ceil (max(calib.eye.b) / 100) * 100 + 100;
+    y_lim_lower = floor(min(calib.eye.b) / 100) * 100 - 100;
 
-    figure(5)
-    subplot(121)
-    plot(time, [est_rls.alg1_0.b_mat, est_rls.alg1_1.b_mat]), grid on, hold on, title('bias')
+    % y_lim_upper = 1200;
+    % y_lim_lower = 0;
+
+    figure(7)
+    subplot(321)
+    plot(time, [est_rls.alg1_0.b_mat, est_rls.alg1_1.b_mat]), grid on, hold on, title('Alg.1: bias')
     plot([time(1); time(end)], [calib.eye.b.'; calib.eye.b.']), hold off
     xlim([0 time(end)]), ylim([y_lim_lower, y_lim_upper])
-    subplot(122)
-    plot(time, [est_rls.alg1_0.lambda_vec, est_rls.alg1_1.lambda_vec]), grid on, hold on, title('lamda')
-    plot([time(1); time(end)], [calib.eye.b.'; calib.eye.b.']), hold off
+    subplot(322)
+    plot(time, [est_rls.alg1_0.lambda_vec, est_rls.alg1_1.lambda_vec]), grid on, title('Alg.1: lamda')
+    xlim([0 time(end)]), ylim([lambda_min, 1.0])
+    subplot(323)
+    plot(time, [est_rls.alg2_0.b_mat, est_rls.alg2_1.b_mat]), grid on, hold on, title('Alg.2: bias')
+    plot([time(1); time(end)], [calib.diag.b.'; calib.diag.b.']), hold off
+    xlim([0 time(end)]), ylim([y_lim_lower, y_lim_upper])
+    subplot(324)
+    plot(time, [est_rls.alg2_0.lambda_vec, est_rls.alg2_1.lambda_vec]), grid on, title('Alg.2: lamda')
+    xlim([0 time(end)]), ylim([lambda_min, 1.0])
+    subplot(325)
+    est_rls.alg2_0.scale_mat(imag(est_rls.alg2_0.scale_mat) ~= 0) = 0;
+    est_rls.alg2_1.scale_mat(imag(est_rls.alg2_1.scale_mat) ~= 0) = 0;
+    plot(time, [est_rls.alg2_0.scale_mat, est_rls.alg2_1.scale_mat]), grid on, hold on, title('Alg.2: scale')
+    plot([time(1); time(end)], [diag(calib.diag.A).'; diag(calib.diag.A).']), hold off
+    xlim([0 time(end)]), ylim([0.95, 1.05])
+    subplot(326)
+    plot(time, [est_rls.alg2_0.lambda_vec, est_rls.alg2_1.lambda_vec]), grid on%, title('Alg.2: lamda')
     xlim([0 time(end)]), ylim([lambda_min, 1.0])
 
-    if (true)
+    if (false)
         % compare it to c project
         data_from_c_project = readmatrix(['05_output_from_c_project/', file_name(1:end-8), '.txt']); %#ok
-        figure(6)
+        figure(8)
         subplot(121)
         plot(time, [est_rls.alg1_1.b_mat, data_from_c_project(:,1:3)]), grid on, title('bias')
         xlim([0 time(end)]), ylim([y_lim_lower, y_lim_upper])
