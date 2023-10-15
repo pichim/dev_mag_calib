@@ -32,8 +32,8 @@ p0 = 1e2;            % value to initialize P(0) = diag([P0, P0, P0]), typically 
 
 % these parameters do not matter in current c implementation
 lambda = 1.00;       % adaptive forgetting factor, range: [0.9, 1.0]
-scale_mag = 1.0e0;   % unnescessary
-                     % in the range (1000, 2000)
+scale_mag = 1.0e0;   % unnescessary, in the range (1000, 2000)
+
 lambda_min_bias_and_scale = 0.97;
 lambda_min_bias_scale_and_rotation = 0.98;
 
@@ -66,8 +66,14 @@ lambda_min_bias_scale_and_rotation = 0.98;
 % file_name = '20231014_apex5_mag_on_tpu_02.bbl.csv';
 % T_eval = [11.8071, inf];
 % - result from fc: mag_calibration = 957,417,502
-file_name = '20231014_apex5_mag_on_tpu_03.bbl.csv';
-T_eval = [15.6461, inf];
+% file_name = '20231014_apex5_mag_on_tpu_03.bbl.csv';
+% T_eval = [15.6461, inf];
+
+% not enough information
+% file_name = '20231015_ctzsnooze_PR_Cal_2.bbl.csv'; 
+% T_eval = [0, inf];
+file_name = '20231015_ctzsnooze_PR_Cal_3.bbl.csv';
+T_eval = [7.0, inf];
 
 
 % extract header information
@@ -126,7 +132,7 @@ end
 
 
 % downasmple data
-n_ds = (1/Ts_log) / fs_mag; % sample from (1/Ts_log) Hz to fs_mag Hz
+n_ds = round((1/Ts_log) / fs_mag); % sample from (1/Ts_log) Hz to fs_mag Hz
 data = data(1:n_ds:end,:);
 time = time(1:n_ds:end);
 Ts = Ts_log * n_ds;
