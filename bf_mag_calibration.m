@@ -5,9 +5,9 @@ addpath ..\bf_function_libary\
 %%
 
 % parameters
-do_i_use_matlab        = false;
+do_i_use_matlab        = true;
 do_show_MgnCalibration = false;
-do_show_RLS_results    = false;
+do_show_RLS_results    = true;
 do_compare_RLS_results = false;
 do_use_filtered_data   = false;
 f_cut = 20; filter_type = 'pt3';
@@ -40,11 +40,13 @@ lambda_min_bias_scale_and_rotation = 0.98;
 % measurements
 
 % quad armed, probs off
+% file_directory = '20231008/';
 % - set blackbox_mode = NORMAL
 % file_name = '20231008_apex5_mag_on_tpu_00.bbl.csv';
 % T_eval = [4.0, 136.0];
 
 % online calibration using stick commands, blackboxmode
+% file_directory = '20231009/';
 % - set blackbox_mode = ALWAYS
 % - result from fc: mag_calibration = 1010,505,549
 % file_name = '20231009_apex5_mag_on_tpu_00.bbl.csv';
@@ -54,11 +56,13 @@ lambda_min_bias_scale_and_rotation = 0.98;
 % T_eval = [20.7976, inf];
 
 % online calibration using stick commands
+% file_directory = '20231014/';
 % - set blackbox_mode = ALWAYS
 % - result from fc: mag_calibration = 892,398,466
 % file_name = '20231014_apex5_mag_on_tpu_00.bbl.csv';
-% T_eval = [16.0919 + 0.0*(+ 0.2 - 1.0), inf];
+% T_eval = [16.0919 + 1.0*(0.2 - 0*1.0), inf];
 
+% file_directory = '20231014/';
 % - result from fc: mag_calibration = 945,417,503
 % file_name = '20231014_apex5_mag_on_tpu_01.bbl.csv';
 % T_eval = [26.4394, inf];
@@ -69,15 +73,27 @@ lambda_min_bias_scale_and_rotation = 0.98;
 % file_name = '20231014_apex5_mag_on_tpu_03.bbl.csv';
 % T_eval = [15.6461, inf];
 
-% not enough information
-% file_name = '20231015_ctzsnooze_PR_Cal_2.bbl.csv'; 
-% T_eval = [0, inf];
-file_name = '20231015_ctzsnooze_PR_Cal_3.bbl.csv';
-T_eval = [7.0, inf];
+% file_directory = '20231015/';
+% file_name = '20231015_ctzsnooze_PR_Cal_3.bbl.csv';
+% T_eval = [7.0, inf];
+
+file_directory = '20231016/';
+% file_name = 'calTest1_222,240,-8.BBL.csv';
+% T_eval = [14.8161, 43.5706];
+% file_name = 'calTest1_198,253,-9.BBL.csv';
+% T_eval = [52.954, 81.6759];
+file_name = 'calTest1_208,249,-2.BBL.csv';
+T_eval = [18.2137, 47.5514];
+% file_name = 'calTest1_215,253,0.BBL.csv';
+% T_eval = [25.2559, 55.225];
+% - result from fc: mag_calibration = 221,233,0
+
+% file_name = 'CalCareful_2282320.bbl.csv';
+% T_eval = [12.4601, 42.4479];
 
 
 % extract header information
-file_path = ['00_data/', file_name];
+file_path = ['00_data/', file_directory, file_name];
 [para, Nheader, ind] = extract_header_information(file_path);
 
 
@@ -148,8 +164,8 @@ ax(1) = subplot(221);
 plot(time, mag), grid on, xlim([0 time(end)]), ylabel('magADC')
 title('mag')
 ax(2) = subplot(223);
-plot(time, sqrt(sum(mag.^2, 2))), grid on, xlim([0 time(end)]), ylabel('|magADC|'), xlabel('Time (sec)')
-% plot(time, data(:, ind.debug(:,8))), grid on, ylabel('lambda'), xlabel('Time (sec)')
+% plot(time, sqrt(sum(mag.^2, 2))), grid on, xlim([0 time(end)]), ylabel('|magADC|'), xlabel('Time (sec)')
+plot(time, data(:, ind.debug(:,8))), grid on, ylabel('lambda'), xlabel('Time (sec)')
 ax(3) = subplot(222);
 plot(time, gyro), grid on, xlim([0 time(end)]), ylabel('gyroADC')
 title('gyro')
@@ -170,13 +186,13 @@ N = size(gyro, 1);
 dmag = [zeros(1,3); diff(mag) / Ts];
 
 
-% write text file that can be run in mag_calib dev project: https://github.com/pichim/mag_calib
-fileID = fopen(['03_input_for_c_project/', file_name(1:end-8), '.txt'], 'w');
-for i = 1:N
-    fprintf(fileID, '%0.12f, %0.12f, %0.12f, %0.12f, %0.12f, %0.12f\n', ...
-            mag(i,1), mag(i,2), mag(i,3), gyro(i,1), gyro(i,2), gyro(i,3));
-end
-fclose(fileID);
+% % write text file that can be run in mag_calib dev project: https://github.com/pichim/mag_calib
+% fileID = fopen(['03_input_for_c_project/', file_name(1:end-8), '.txt'], 'w');
+% for i = 1:N
+%     fprintf(fileID, '%0.12f, %0.12f, %0.12f, %0.12f, %0.12f, %0.12f\n', ...
+%             mag(i,1), mag(i,2), mag(i,3), gyro(i,1), gyro(i,2), gyro(i,3));
+% end
+% fclose(fileID);
 
 
 %% Matlab File-Exchange function MgnCalibration
@@ -395,20 +411,20 @@ mag_calib = (mag - calib.sym.b.') * calib.sym.A.';
 mag_calib_norm(:,3) = sqrt( sum( mag_calib.^2  , 2) );
 
 figure(2), clf
-ax(1) = subplot(221);
-plot(time, mag), grid on
-title('uncalibrated')
-ax(2) = subplot(222);
-plot(time, mag_calib), grid on
-title('calibrated')
-linkaxes(ax, 'xy'), clear ax
-xlim([0 time(end)])
-ax(1) = subplot(223);
-plot(time, sqrt( sum( mag.^2, 2) )), grid on
-ax(2) = subplot(224);
+% ax(1) = subplot(221);
+% plot(time, mag), grid on
+% title('uncalibrated')
+% ax(2) = subplot(222);
+% plot(time, mag_calib), grid on
+% title('calibrated')
+% linkaxes(ax, 'xy'), clear ax
+% xlim([0 time(end)])
+% ax(1) = subplot(223);
+% plot(time, sqrt( sum( mag.^2, 2) )), grid on
+% ax(2) = subplot(224);
 plot(time, mag_calib_norm), grid on
 legend('bias', 'bias and scaling', 'bias, scaling and rotation', 'location', 'northeast')
-linkaxes(ax, 'xy'), clear ax
+% linkaxes(ax, 'xy'), clear ax
 xlim([0 time(end)])
 
 
