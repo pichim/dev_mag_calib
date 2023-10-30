@@ -77,13 +77,13 @@ lambda_min_bias_scale_and_rotation = 0.98;
 % file_name = '20231015_ctzsnooze_PR_Cal_3.bbl.csv';
 % T_eval = [7.0, inf];
 
-file_directory = '20231016/';
+% file_directory = '20231016/';
 % file_name = 'calTest1_222,240,-8.BBL.csv';
 % T_eval = [14.8161, 43.5706];
 % file_name = 'calTest1_198,253,-9.BBL.csv';
 % T_eval = [52.954, 81.6759];
-file_name = 'calTest1_208,249,-2.BBL.csv';
-T_eval = [18.2137, 47.5514];
+% file_name = 'calTest1_208,249,-2.BBL.csv';
+% T_eval = [18.2137, 47.5514];
 % file_name = 'calTest1_215,253,0.BBL.csv';
 % T_eval = [25.2559, 55.225];
 % - result from fc: mag_calibration = 221,233,0
@@ -91,6 +91,9 @@ T_eval = [18.2137, 47.5514];
 % file_name = 'CalCareful_2282320.bbl.csv';
 % T_eval = [12.4601, 42.4479];
 
+file_directory = '20231030/';
+file_name = 'MagCalNewMethod.BBL.csv';
+T_eval = [14.5166, 14.5166+30.0];
 
 % extract header information
 file_path = ['00_data/', file_directory, file_name];
