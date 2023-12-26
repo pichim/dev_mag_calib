@@ -1,0 +1,6 @@
+mag_calibration = 611,201,197
+mag_calibration = 583,242,206
+mag_calibration = 595,280,193
+mag_calibration = 575,155,203
+mag_calibration = 552,277,200
+mag_calibration = 582,177,186

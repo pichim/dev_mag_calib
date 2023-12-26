@@ -91,9 +91,27 @@ lambda_min_bias_scale_and_rotation = 0.98;
 % file_name = 'CalCareful_2282320.bbl.csv';
 % T_eval = [12.4601, 42.4479];
 
-file_directory = '20231030/';
-file_name = 'MagCalNewMethod.BBL.csv';
-T_eval = [14.5166, 14.5166+30.0];
+% file_directory = '20231030/';
+% file_name = 'MagCalNewMethod.BBL.csv';
+% T_eval = [14.5166, 14.5166+30.0];
+
+% file_directory = '20231031/';
+% % file_name = 'MagCalNewMethod_3b.BBL.csv';
+% % T_eval = [19.3139, 19.3139+30.0];
+% file_name = 'MagCalNewMethod_4.BBL.csv';
+% T_eval = [15.072, 15.072+30.0];
+
+file_directory = '20231226/';
+% % - result from fc: mag_calibration = 514, 144, 138
+% file_name = '20231226_apex5_mag_on_tpu_00.bbl.csv';
+% T_eval = [14.2598, inf];
+% % - result from fc: mag_calibration = 542, 167, 126
+% file_name = '20231226_apex5_mag_on_tpu_01.bbl.csv';
+% T_eval = [11.2821, inf];
+% - result from fc: mag_calibration = 539, 164, 127
+file_name = '20231226_apex5_mag_on_tpu_02.bbl.csv';
+T_eval = [13.4585, inf];
+
 
 % extract header information
 file_path = ['00_data/', file_directory, file_name];
@@ -432,7 +450,7 @@ xlim([0 time(end)])
 
 
 % only show datapoints every Ts_show sec
-Ts_show = 0.05;
+Ts_show = Ts;
 ind_show = (1:ceil(Ts_show / Ts):length(time)).';
 
 figure(3)
@@ -440,6 +458,7 @@ plot3(mag(ind_show,1), mag(ind_show,2), mag(ind_show,3), 'b.', 'MarkerSize', 10)
 plot3(mag_calib(ind_show,1), mag_calib(ind_show,2), mag_calib(ind_show,3), '.', 'color', [0 0.5 0], 'MarkerSize', 10), hold off
 axis equal
 legend('uncalibrated', 'calibrated', 'location', 'northeast')
+xlabel('x-Axis'), ylabel('y-Axis'), xlabel('z-Axis')
 
 %%
 
